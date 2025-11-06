@@ -3,9 +3,9 @@
 // ======================================================
 // Pastikan kedua API ini mengarah ke URL Google App Script Anda
 const BOOKINGS_API_READ =
-  "https://script.google.com/macros/s/AKfycbzbTvpQMZwd5Br6SD3vWNtnnsGySmYXSPp9cdA9BSnwxF_6BrKrs7ifbQ3yUcpRHTl2/exec";
+  "https://script.google.com/macros/s/AKfycbzhw_3Kt6aKRxr1ai5mvFqv8oJxXJ6goD3a06kdaFj_JzrwwcOU0LHNimvvWixzUgtt/exec";
 const BOOKINGS_API_WRITE =
-  "https://script.google.com/macros/s/AKfycbzbTvpQMZwd5Br6SD3vWNtnnsGySmYXSPp9cdA9BSnwxF_6BrKrs7ifbQ3yUcpRHTl2/exec";
+  "https://script.google.com/macros/s/AKfycbzhw_3Kt6aKRxr1ai5mvFqv8oJxXJ6goD3a06kdaFj_JzrwwcOU0LHNimvvWixzUgtt/exec";
 
 let selectedDateGlobal = null;
 let selectedTimeGlobal = null;
