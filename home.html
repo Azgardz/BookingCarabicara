@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booking Jadwal | Carabicara</title>
+    <style>
+      /* ======== STYLE UMUM ======== */
+      body {
+        font-family: "Poppins", sans-serif;
+        background: #f6f8fb;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 10px 0;
+      }
+
+      .container {
+        width: 95%;
+        max-width: 600px;
+        margin: 30px auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      /* ======== KALENDER ======== */
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #007bff;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 10px;
+      }
+
+      .calendar-header button {
+        background: #fff;
+        color: #007bff;
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin-top: 15px;
+      }
+
+      .day {
+        padding: 10px;
+        text-align: center;
+        border-radius: 8px;
+        background: #f0f4ff;
+        transition: all 0.2s;
+      }
+
+      .day.header {
+        font-weight: bold;
+        background: #e2e6f9;
+        color: #333;
+      }
+
+      .day:hover {
+        background: #007bff;
+        color: white;
+      }
+
+      .day.booked {
+        background: #ffbdbd;
+        color: #666;
+        cursor: not-allowed;
+      }
+
+      /* ======== SLOT JAM ======== */
+      #slots {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .slot {
+        margin: 8px;
+        padding: 10px 14px;
+        border: none;
+        border-radius: 6px;
+        background-color: #007bff;
+        color: #fff;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .slot:hover {
+        background-color: #0056b3;
+      }
+
+      .slot.booked {
+        background-color: #ccc;
+        color: #555;
+        cursor: not-allowed;
+      }
+
+      /* ======== FORM BOOKING ======== */
+      #booking-form {
+        margin-top: 25px;
+        text-align: center;
+      }
+
+      #booking-form input,
+      #booking-form textarea {
+        display: block;
+        width: 90%;
+        max-width: 400px;
+        margin: 10px auto;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-family: inherit;
+      }
+
+      #submitBooking {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: 0.3s;
+      }
+
+      #submitBooking:hover {
+        background: #1e7e34;
+      }
+
+      #confirmation {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 20px;
+        text-align: center;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Booking Jadwal Carabicara</h1>
+      <p>Pilih tanggal dan waktu yang tersedia untuk kelas kamu!</p>
+
+      <!-- ========== KALENDER ========== -->
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button id="prev-month">◀</button>
+          <h2 id="month-year"></h2>
+          <button id="next-month">▶</button>
+        </div>
+        <div id="calendar" class="calendar-grid"></div>
+      </div>
+
+      <!-- ========== SLOT WAKTU ========== -->
+      <div id="slots" class="hidden"></div>
+
+      <!-- ========== FORM BOOKING ========== -->
+      <div id="booking-form" class="hidden">
+        <h3>Isi Form Booking</h3>
+        <input type="text" id="name" placeholder="Nama Lengkap" />
+        <input type="email" id="email" placeholder="Alamat Email" />
+        <textarea
+          id="notes"
+          rows="3"
+          placeholder="Catatan tambahan (opsional)"
+        ></textarea>
+        <button id="submitBooking">Kirim</button>
+      </div>
+
+      <!-- ========== KONFIRMASI ========== -->
+      <div id="confirmation" class="hidden"></div>
+    </div>
+
+    <!-- ========== SCRIPT BOOKING ========== -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Elemen DOM
+        const calendar = document.getElementById("calendar");
+        const monthYear = document.getElementById("month-year");
+        const prevMonthBtn = document.getElementById("prev-month");
+        const nextMonthBtn = document.getElementById("next-month");
+        const slotsDiv = document.getElementById("slots");
+        const bookingForm = document.getElementById("booking-form");
+        const submitBooking = document.getElementById("submitBooking");
+        const nameInput = document.getElementById("name");
+        const emailInput = document.getElementById("email");
+        const notesInput = document.getElementById("notes");
+        const confirmation = document.getElementById("confirmation");
+
+        // Jadwal booked dummy (nanti bisa ambil dari Google Sheet)
+        const bookings = {
+          "2025-11-05": ["09:00", "13:00"],
+          "2025-11-07": ["09:00", "13:00", "16:00"],
+        };
+
+        const availableTimes = [
+          "09:00",
+          "10:00",
+          "11:00",
+          "13:00",
+          "14:00",
+          "15:00",
+          "16:00",
+        ];
+        let selectedDateGlobal = "";
+        let selectedTimeGlobal = "";
+        let today = new Date();
+        let currentMonth = today.getMonth();
+        let currentYear = today.getFullYear();
+
+        // ============================================================
+        // Render kalender
+        function renderCalendar(month, year) {
+          calendar.innerHTML = "";
+          const firstDay = new Date(year, month, 1);
+          const lastDay = new Date(year, month + 1, 0);
+
+          monthYear.textContent = firstDay.toLocaleString("id-ID", {
+            month: "long",
+            year: "numeric",
+          });
+
+          const daysOfWeek = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+          for (let day of daysOfWeek) {
+            const header = document.createElement("div");
+            header.classList.add("day", "header");
+            header.textContent = day;
+            calendar.appendChild(header);
+          }
+
+          for (let i = 0; i < firstDay.getDay(); i++) {
+            const empty = document.createElement("div");
+            empty.classList.add("day", "empty");
+            calendar.appendChild(empty);
+          }
+
+          for (let date = 1; date <= lastDay.getDate(); date++) {
+            const dateDiv = document.createElement("div");
+            const dateStr = `${year}-${String(month + 1).padStart(
+              2,
+              "0"
+            )}-${String(date).padStart(2, "0")}`;
+            dateDiv.textContent = date;
+            dateDiv.classList.add("day");
+
+            if (bookings[dateStr]) {
+              dateDiv.classList.add("booked");
+            }
+
+            dateDiv.addEventListener("click", () => openSlots(dateStr));
+            calendar.appendChild(dateDiv);
+          }
+        }
+
+        // ============================================================
+        // Buka daftar jam
+        function openSlots(dateStr) {
+          selectedDateGlobal = dateStr;
+          slotsDiv.innerHTML = `<h3>Pilih Jam untuk ${dateStr}</h3>`;
+
+          availableTimes.forEach((time) => {
+            const slot = document.createElement("button");
+            slot.textContent = time;
+            slot.classList.add("slot");
+
+            if (bookings[dateStr]?.includes(time)) {
+              slot.classList.add("booked");
+              slot.disabled = true;
+            }
+
+            slot.addEventListener("click", () =>
+              handleSlotSelection(dateStr, time)
+            );
+            slotsDiv.appendChild(slot);
+          });
+
+          slotsDiv.classList.remove("hidden");
+          bookingForm.classList.add("hidden");
+          confirmation.classList.add("hidden");
+        }
+
+        // ============================================================
+        // Pilih jam
+        function handleSlotSelection(dateStr, time) {
+          selectedDateGlobal = dateStr;
+          selectedTimeGlobal = time;
+          slotsDiv.classList.add("hidden");
+          bookingForm.classList.remove("hidden");
+        }
+
+        // ============================================================
+        // Kirim data ke Google Sheets
+        submitBooking.addEventListener("click", async () => {
+          const name = nameInput.value.trim();
+          const email = emailInput.value.trim();
+          const notes = notesInput.value.trim();
+
+          if (!name || !email || !selectedDateGlobal || !selectedTimeGlobal) {
+            alert("Harap isi semua kolom dan pilih waktu terlebih dahulu!");
+            return;
+          }
+
+          submitBooking.disabled = true;
+          submitBooking.textContent = "Mengirim...";
+
+          try {
+            const SHEET_URL =
+              "https://script.google.com/macros/s/AKfycbwxs_ykJ0kwRfqBYSpHCTWS-JhOigwGz4QMbP97XXM0hHyBORjayEJ4bcf0c17uyuqU/exec";
+            const response = await fetch(SHEET_URL, {
+              method: "POST",
+              body: new URLSearchParams({
+                name,
+                email,
+                date: selectedDateGlobal,
+                time: selectedTimeGlobal,
+                notes,
+              }),
+            });
+
+            if (response.ok) {
+              confirmation.textContent = `✅ Booking berhasil untuk ${selectedDateGlobal} pukul ${selectedTimeGlobal}.`;
+              confirmation.classList.remove("hidden");
+              bookingForm.classList.add("hidden");
+
+              // Tambah ke daftar booked agar warna berubah
+              if (!bookings[selectedDateGlobal])
+                bookings[selectedDateGlobal] = [];
+              bookings[selectedDateGlobal].push(selectedTimeGlobal);
+
+              renderCalendar(currentMonth, currentYear);
+            } else {
+              alert("Terjadi kesalahan saat mengirim data!");
+            }
+          } catch (error) {
+            console.error(error);
+            alert(
+              "Gagal terhubung ke server. Pastikan URL Google Script benar."
+            );
+          } finally {
+            submitBooking.disabled = false;
+            submitBooking.textContent = "Kirim";
+            nameInput.value = "";
+            emailInput.value = "";
+            notesInput.value = "";
+          }
+        });
+
+        // ============================================================
+        // Navigasi bulan
+        prevMonthBtn.addEventListener("click", () => {
+          currentMonth--;
+          if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+          }
+          renderCalendar(currentMonth, currentYear);
+        });
+
+        nextMonthBtn.addEventListener("click", () => {
+          currentMonth++;
+          if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+          }
+          renderCalendar(currentMonth, currentYear);
+        });
+
+        // ============================================================
+        // Render awal
+        renderCalendar(currentMonth, currentYear);
+      });
+    </script>
+  </body>
+</html>
