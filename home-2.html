@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carabicara Bookings</title>
+    <style>
+      /* 🎨 CSS UPGRADE TOTAL: MINIMALIS & PROFESIONAL */
+
+      /* Color Palette */
+      :root {
+        --primary-color: #1e3a8a; /* Deep Indigo/Navy Blue */
+        --accent-color: #06b6d4; /* Modern Teal/Cyan */
+        --bg-light: #f4f7f9; /* Latar Belakang Body */
+        --card-bg: #ffffff;
+        --text-color: #334155;
+        --shadow-soft: 0 12px 30px rgba(30, 58, 138, 0.15);
+        --border-default: #e5e7eb;
+      }
+
+      /* --- CSS Dasar (Diperbarui) --- */
+      body {
+        font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-light); /* Fixed color, clean look */
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text-color);
+        transition: background-color 0.3s;
+      }
+
+      .container {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow-soft);
+        padding: 40px;
+        text-align: center;
+        width: 90%;
+        max-width: 480px;
+        margin: 20px 0;
+        transition: box-shadow 0.3s;
+      }
+
+      h1 {
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        font-size: 2em;
+        font-weight: 700;
+      }
+
+      h2 {
+        color: var(--text-color);
+        margin-top: 0;
+        margin-bottom: 25px;
+        font-size: 1.3em;
+        font-weight: 600;
+        padding-bottom: 5px;
+        border-bottom: 1px solid var(--border-default);
+      }
+
+      /* --- CSS Tombol Umum (Diperbarui) --- */
+      button {
+        background-color: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+        margin: 5px;
+        box-shadow: 0 4px 10px rgba(30, 58, 138, 0.2);
+      }
+
+      button:hover {
+        background-color: #1a3378;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(30, 58, 138, 0.3);
+      }
+
+      /* Gaya untuk tombol yang dinonaktifkan */
+      button:disabled {
+        cursor: not-allowed;
+        background-color: #d1d5db;
+        color: #6b7280;
+        opacity: 1;
+        box-shadow: none;
+        transform: translateY(0);
+      }
+
+      /* --- TAHAP 1: KALENDER & NAVIGASI BULAN --- */
+
+      /* Kontrol Bulan */
+      #month-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+
+      #month-header button {
+        padding: 8px 15px;
+        font-size: 14px;
+        background-color: #9ca3af; /* Abu-abu terang untuk navigasi */
+        box-shadow: none;
+      }
+      #month-header button:hover {
+        background-color: #6b7280;
+        transform: translateY(-1px);
+      }
+
+      /* Kalender: Tampilan Grid untuk tombol tanggal */
+      #calendar-container {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr); /* Jelas 7 kolom per hari */
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .date-button {
+        background-color: var(--card-bg);
+        color: var(--primary-color);
+        border: 2px solid var(--border-default);
+        padding: 15px 5px;
+        font-weight: bold;
+        font-size: 1em;
+        aspect-ratio: 1 / 1; /* Membuat tombol persegi (tile) */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+      }
+
+      .date-button:not(:disabled):hover {
+        background-color: var(--accent-color); /* Teal saat hover */
+        border-color: var(--accent-color);
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .date-button[disabled] {
+        background-color: var(--bg-light) !important;
+        color: #a1a1a1 !important;
+        border-color: #d1d5db !important;
+      }
+
+      /* --- TAHAP 2: WAKTU --- */
+
+      #time-view button {
+        background-color: var(
+          --accent-color
+        ); /* Teal/Cyan untuk pilihan waktu */
+        box-shadow: 0 4px 10px rgba(6, 182, 212, 0.3);
+      }
+      #time-view button:hover {
+        background-color: #0e96af;
+        box-shadow: 0 6px 15px rgba(6, 182, 212, 0.4);
+      }
+
+      #selected-date-display {
+        color: var(--accent-color);
+        font-weight: 700;
+      }
+
+      /* Waktu: Tampilan Flexbox untuk tombol jam */
+      #time-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+      }
+
+      /* --- TAHAP 3: FORM & SIMPAN DATA --- */
+
+      #form-view h2 {
+        color: var(--primary-color);
+      }
+
+      #final-date-time {
+        color: var(--accent-color);
+        font-weight: bold;
+        background-color: #ecfeff;
+        padding: 5px 10px;
+        border-radius: 4px;
+      }
+
+      #booking-form {
+        text-align: left;
+        margin-top: 25px;
+      }
+
+      #booking-form label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+
+      #booking-form input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border: 2px solid var(--border-default);
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 16px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+      }
+
+      #booking-form input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+        outline: none;
+      }
+
+      #booking-form button[type="submit"] {
+        width: 100%;
+        margin-top: 15px;
+        background-color: var(--accent-color); /* Teal/Cyan untuk Konfirmasi */
+        box-shadow: 0 4px 10px rgba(6, 182, 212, 0.3);
+      }
+
+      #booking-form button[type="submit"]:hover {
+        background-color: #0e96af;
+      }
+
+      /* Tampilan Status (Feedback) */
+      #status {
+        margin-top: 30px;
+        padding: 15px;
+        background-color: var(--bg-light);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      /* Gaya untuk pesan sukses dan error */
+      #status[style*="green"] {
+        background-color: #d1fae5; /* Hijau muda */
+        color: #065f46;
+        border-color: #a7f3d0;
+      }
+      #status[style*="red"] {
+        background-color: #fee2e2; /* Merah muda */
+        color: #991b1b;
+        border-color: #fca5a5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Carabicara Bookings</h1>
+
+      <div id="calendar-view">
+        <h2>1. Pilih Tanggal</h2>
+        <div id="month-header">
+          <button id="prev-month-btn" onclick="changeMonth(-1)">
+            &#9664; Sebelumnya
+          </button>
+          <h3 id="current-month-display" style="margin: 0"></h3>
+          <button id="next-month-btn" onclick="changeMonth(1)">
+            Berikutnya &#9654;
+          </button>
+        </div>
+        <div id="calendar-container"></div>
+      </div>
+
+      <div id="time-view" style="display: none">
+        <h2>2. Pilih Waktu (<span id="selected-date-display"></span>)</h2>
+        <div id="time-container"></div>
+        <button onclick="resetBooking()">Pilih Tanggal Lain</button>
+      </div>
+
+      <div id="form-view" style="display: none">
+        <h2>3. Isi Data Diri</h2>
+        <p>Booking untuk tanggal <span id="final-date-time"></span></p>
+        <form id="booking-form">
+          <label for="name">Nama:</label>
+          <input type="text" id="name" required />
+
+          <label for="age">Usia:</label>
+          <input type="number" id="age" required />
+
+          <label for="domicile">Domisili:</label>
+          <input type="text" id="domicile" required />
+
+          <button type="submit">Konfirmasi Booking</button>
+        </form>
+        <button onclick="backToTime()">Kembali ke Pilihan Jam</button>
+      </div>
+
+      <p id="status">Mulai dengan memilih tanggal...</p>
+    </div>
+
+    <script type="module">
+      // Impor fungsi yang diperlukan dari Firebase SDK (Tidak ada yang dihilangkan)
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        getDoc,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js"; // Menggabungkan semua fungsi Firestore di sini
+
+      // Konfigurasi Firebase Anda
+      const firebaseConfig = {
+        apiKey: "AIzaSyCMYljtlY_zJ6QQWpKP2WGW8whdn-h3Bkc",
+        authDomain: "carabicara-bookings.firebaseapp.com",
+        databaseURL:
+          "https://carabicara-bookings-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "carabicara-bookings",
+        storageBucket: "carabicara-bookings.firebasestorage.app",
+        messagingSenderId: "941045891420",
+        appId: "1:941045891420:web:bdc020df3854bba566c199",
+        measurementId: "G-6GB1L09B28",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const db = getFirestore(app);
+
+      console.log("Firebase terhubung:", app.name);
+      console.log("Project ID:", firebaseConfig.projectId);
+
+      try {
+        const test = await getDoc(doc(db, "test", "test"));
+        console.log("Firestore OK");
+      } catch (e) {
+        console.log("Firestore error:", e.message);
+      }
+
+      // Variabel untuk menyimpan pilihan pengguna
+      let selectedDate = null;
+      let selectedTime = null;
+
+      // --- Variabel Dinamis untuk Kalender ---
+      const today = new Date();
+
+      let currentCalendarDate = new Date();
+      let currentYear = currentCalendarDate.getFullYear();
+      let currentMonth = currentCalendarDate.getMonth() + 1;
+
+      // --- Batas Maksimum Navigasi (6 bulan ke depan, termasuk bulan ini) ---
+      const maxFutureDate = new Date(
+        today.getFullYear(),
+        today.getMonth() + 6,
+        1
+      );
+      const maxYear = maxFutureDate.getFullYear();
+      const maxMonth = maxFutureDate.getMonth() + 1;
+
+      // --- Batas Minimum Navigasi (Tidak bisa mundur dari bulan ini) ---
+      const minYear = today.getFullYear();
+      const minMonth = today.getMonth() + 1;
+
+      // --- Fungsi Utilitas ---
+
+      const pad = (num) => (num < 10 ? "0" + num : num);
+
+      const getMonthName = (monthIndex) => {
+        const monthNames = [
+          "Januari",
+          "Februari",
+          "Maret",
+          "April",
+          "Mei",
+          "Juni",
+          "Juli",
+          "Agustus",
+          "September",
+          "Oktober",
+          "November",
+          "Desember",
+        ];
+        return monthNames[monthIndex - 1];
+      };
+
+      const isMaxMonth = () =>
+        currentYear >= maxYear && currentMonth >= maxMonth;
+      const isMinMonth = () =>
+        currentYear <= minYear && currentMonth <= minMonth;
+
+      // --- TAHAP 1: KALENDER & NAVIGASI BULAN ---
+
+      // Fungsi untuk mengubah bulan yang ditampilkan
+      window.changeMonth = (change) => {
+        // Cek batas navigasi sebelum mengubah bulan
+        if (change < 0 && isMinMonth()) return;
+        if (change > 0 && isMaxMonth()) return;
+
+        // Gunakan objek Date untuk menghitung bulan/tahun berikutnya
+        const date = new Date(currentYear, currentMonth - 1, 1);
+
+        // Tambah atau kurangi bulan
+        date.setMonth(date.getMonth() + change);
+
+        // Update variabel global
+        currentYear = date.getFullYear();
+        currentMonth = date.getMonth() + 1;
+
+        // Render ulang kalender
+        renderCalendar();
+      };
+
+      // Menampilkan tombol-tombol tanggal (Dinamis berdasarkan bulan aktif)
+      const renderCalendar = () => {
+        const container = document.getElementById("calendar-container");
+        const monthDisplay = document.getElementById("current-month-display");
+        const prevBtn = document.getElementById("prev-month-btn");
+        const nextBtn = document.getElementById("next-month-btn");
+
+        container.innerHTML = "";
+
+        // Hitung jumlah hari dalam bulan yang sedang aktif
+        const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+        // Update tampilan bulan dan tahun
+        monthDisplay.textContent = `${getMonthName(
+          currentMonth
+        )} ${currentYear}`;
+
+        // --- Logika Kontrol Tombol Navigasi ---
+        prevBtn.disabled = isMinMonth();
+        nextBtn.disabled = isMaxMonth();
+
+        // Looping untuk membuat tombol
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateString = `${currentYear}-${pad(currentMonth)}-${pad(day)}`;
+
+          const button = document.createElement("button");
+          button.textContent = pad(day);
+          button.className = "date-button";
+
+          // Tambahkan logika untuk menonaktifkan tanggal yang sudah lewat di bulan ini
+          if (
+            currentYear === minYear &&
+            currentMonth === minMonth &&
+            day < today.getDate()
+          ) {
+            button.disabled = true;
+            button.style.backgroundColor = "#aaa";
+            button.style.cursor = "not-allowed";
+          } else {
+            button.onclick = () => selectDate(dateString);
+          }
+
+          container.appendChild(button);
+        }
+      };
+
+      // Fungsi saat tanggal diklik
+      const selectDate = async (date) => {
+        selectedDate = date;
+        document.getElementById("selected-date-display").textContent = date;
+        document.getElementById("status").textContent =
+          "Mencari waktu tersedia...";
+
+        // Pindah View
+        document.getElementById("calendar-view").style.display = "none";
+        document.getElementById("time-view").style.display = "block";
+
+        await fetchAvailableTimes(date);
+      };
+
+      // --- TAHAP 2: WAKTU ---
+
+      // Mengambil Waktu dari Firestore dan menampilkannya sebagai tombol
+      const fetchAvailableTimes = async (date) => {
+        const timeContainer = document.getElementById("time-container");
+        timeContainer.innerHTML = "";
+
+        try {
+          const docRef = doc(db, "availability", date);
+          let docSnap;
+          try {
+            docSnap = await getDoc(docRef);
+          } catch (e) {
+            console.error("Gagal mengambil schedule:", e);
+            document.getElementById("status").textContent =
+              "Error Firestore: " + e.message;
+            return;
+          }
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const availableTimes = data.times || [];
+
+            if (availableTimes.length > 0) {
+              document.getElementById("status").textContent =
+                "Pilih salah satu jam di bawah.";
+
+              availableTimes.forEach((time) => {
+                const button = document.createElement("button");
+                button.textContent = time;
+                button.onclick = () => selectTime(time);
+                timeContainer.appendChild(button);
+              });
+            } else {
+              document.getElementById("status").textContent =
+                "❌ Tidak ada waktu tersedia untuk tanggal ini.";
+            }
+          } else {
+            document.getElementById("status").textContent =
+              "❌ Tidak ada jadwal yang diatur untuk tanggal ini.";
+          }
+        } catch (e) {
+          document.getElementById("status").textContent =
+            "❌ Gagal mengambil jadwal: " + e.message;
+          console.error("Error fetching times: ", e);
+        }
+      };
+
+      // Fungsi saat jam diklik
+      const selectTime = (time) => {
+        selectedTime = time;
+        const display = document.getElementById("final-date-time");
+        display.textContent = `${selectedDate} pukul ${selectedTime}`;
+
+        // Pindah ke tahap Form
+        document.getElementById("time-view").style.display = "none";
+        document.getElementById("form-view").style.display = "block";
+        document.getElementById("status").textContent =
+          "Lengkapi form untuk konfirmasi.";
+      };
+
+      // --- TAHAP 3: FORM & SIMPAN DATA ---
+
+      document
+        .getElementById("booking-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const status = document.getElementById("status");
+
+          const name = document.getElementById("name").value;
+          const age = parseInt(document.getElementById("age").value);
+          const domicile = document.getElementById("domicile").value;
+
+          try {
+            const bookingsCollection = collection(db, "bookings");
+
+            const bookingData = {
+              date: selectedDate,
+              time: selectedTime,
+              name: name,
+              age: age,
+              domicile: domicile,
+              createdAt: new Date(),
+            };
+
+            // Menyimpan data ke Firestore
+            await addDoc(bookingsCollection, bookingData);
+
+            status.textContent =
+              "🎉 Booking Berhasil! Data Anda sudah tersimpan di Firestore.";
+            status.style.color = "green";
+
+            // Ganti form dengan pesan sukses
+            document.getElementById("form-view").innerHTML = `
+                                  <h2>Booking Berhasil!</h2>
+                                  <p>Terima kasih, ${name}. Data Anda untuk tanggal ${selectedDate} pukul ${selectedTime} telah disimpan.</p>
+                                  <button onclick="resetBooking()">Buat Booking Baru</button>
+                              `;
+          } catch (e) {
+            status.textContent = "❌ Gagal menyimpan booking: " + e.message;
+            status.style.color = "red";
+            console.error("Error adding document: ", e);
+          }
+        });
+
+      // --- FUNGSI NAVIGASI APLIKASI ---
+
+      // Kembali ke Awal (Pilih Tanggal)
+      window.resetBooking = () => {
+        selectedDate = null;
+        selectedTime = null;
+
+        // Set ulang bulan kalender ke bulan saat ini
+        currentCalendarDate = new Date();
+        currentYear = currentCalendarDate.getFullYear();
+        currentMonth = currentCalendarDate.getMonth() + 1;
+
+        document.getElementById("form-view").innerHTML = `
+                      <h2>3. Isi Data Diri</h2>
+                      <p>Booking untuk tanggal <span id="final-date-time"></span></p>
+                      <form id="booking-form">
+                          <label for="name">Nama:</label>
+                          <input type="text" id="name" required>
+                          <label for="age">Usia:</label>
+                          <input type="number" id="age" required>
+                          <label for="domicile">Domisili:</label>
+                          <input type="text" id="domicile" required>
+                          <button type="submit">Konfirmasi Booking</button>
+                      </form>
+                      <button onclick="backToTime()">Kembali ke Pilihan Jam</button>
+                  `;
+
+        document.getElementById("form-view").style.display = "none";
+        document.getElementById("time-view").style.display = "none";
+        document.getElementById("calendar-view").style.display = "block";
+        document.getElementById("status").textContent =
+          "Mulai dengan memilih tanggal...";
+
+        renderCalendar();
+      };
+
+      // Kembali ke Tahap Pilihan Jam
+      window.backToTime = () => {
+        document.getElementById("form-view").style.display = "none";
+        document.getElementById("time-view").style.display = "block";
+        document.getElementById(
+          "status"
+        ).textContent = `2. Pilih Waktu (${selectedDate})`;
+      };
+
+      // Panggil renderCalendar saat halaman dimuat
+      renderCalendar();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Daftar Bookings - Admin</title>
+    <style>
+      /* 🎨 Peningkatan Tampilan (Upgrade CSS) dengan Palette Baru */
+
+      /* Color Palette */
+      :root {
+        --primary-color: #20639b; /* Biru */
+        --accent-color: #faa23a; /* Oranye */
+        --bg-light: #f8f9fa; /* Latar belakang body (Hampir putih) */
+        --card-bg: #ffffff; /* Latar belakang tabel/kartu (Putih) */
+        --border-color: #e9ecef;
+        --shadow-soft: 0 6px 15px rgba(32, 99, 155, 0.1); /* Shadow Biru lembut */
+      }
+
+      /* BODY & HEADER */
+      body {
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        padding: 40px 20px;
+        background-color: var(--bg-light);
+        margin: 0;
+        color: #343a40;
+      }
+
+      h1 {
+        color: var(--primary-color);
+        font-size: 2.4em;
+        margin-bottom: 30px;
+        border-left: 6px solid var(--accent-color); /* Border Oranye */
+        padding-left: 15px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      /* TABLE CONTAINER (Efek Kartu yang Lebih Menonjol) */
+      #bookings-table {
+        width: 100%;
+        border-collapse: separate; /* Menggunakan separate untuk border radius */
+        border-spacing: 0;
+        margin-top: 30px;
+        box-shadow: var(--shadow-soft);
+        border-radius: 12px;
+        overflow: hidden;
+        background-color: var(--card-bg);
+      }
+
+      /* HEADER TABLE (TH) */
+      th {
+        background-color: var(--primary-color); /* Biru */
+        color: #ffffff;
+        border: none;
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9em;
+      }
+
+      /* DATA TABLE (TD) */
+      td {
+        border-top: 1px solid var(--border-color);
+        padding: 15px 12px;
+        text-align: left;
+        color: #495057;
+        font-size: 0.95em;
+      }
+
+      /* Hover Effect untuk Baris */
+      #bookings-list tr:hover {
+        background-color: #f0f8ff; /* Biru muda sangat lembut saat di-hover */
+        transition: background-color 0.2s ease;
+      }
+
+      /* Gaya untuk Baris Ganjil-Genap (Striping) */
+      #bookings-list tr:nth-child(odd) {
+        background-color: #fcfcfc;
+      }
+
+      /* Tampilan Status (Loading/Error) - Menggunakan Accent Color */
+      #status-admin {
+        margin-top: 35px;
+        padding: 15px 20px;
+        background-color: #fff8f0; /* Oranye sangat muda */
+        border: 1px solid #ffcc99; /* Border Oranye lebih terang */
+        border-radius: 8px;
+        font-weight: 600;
+        color: #b36b00;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: inline-block;
+      }
+
+      /* Styling Tambahan untuk Kolom Penting */
+      #bookings-list tr td:nth-child(1) {
+        /* Nama */
+        font-weight: 600;
+        color: var(--primary-color); /* Biru */
+      }
+      #bookings-list tr td:nth-child(4) {
+        /* Tanggal & Waktu */
+        font-weight: bold;
+        color: #d9534f; /* Warna kontras Merah untuk menonjolkan waktu */
+        background-color: #fcf8f2;
+        border-radius: 4px;
+        padding: 10px 12px;
+      }
+      #bookings-list tr td:nth-child(5) {
+        /* Waktu Simpan */
+        font-size: 0.8em;
+        color: #999;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Daftar Bookings Carabicara</h1>
+    <table id="bookings-table">
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>Usia</th>
+          <th>Domisili</th>
+          <th>Tanggal & Waktu</th>
+          <th>Waktu Simpan</th>
+        </tr>
+      </thead>
+      <tbody id="bookings-list"></tbody>
+    </table>
+    <p id="status-admin">Memuat data...</p>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        query,
+        orderBy,
+      } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCMYljtlY_zJ6QQWpKP2WGW8whdn-h3Bkc",
+        authDomain: "carabicara-bookings.firebaseapp.com",
+        databaseURL:
+          "https://carabicara-bookings-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "carabicara-bookings",
+        storageBucket: "carabicara-bookings.firebasestorage.app",
+        messagingSenderId: "941045891420",
+        appId: "1:941045891420:web:bdc020df3854bba566c199",
+        measurementId: "G-6GB1L09B28",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      const fetchBookings = async () => {
+        const listBody = document.getElementById("bookings-list");
+        const statusElement = document.getElementById("status-admin");
+
+        listBody.innerHTML = "";
+        statusElement.textContent = "Memuat data...";
+
+        try {
+          const bookingsQuery = query(
+            collection(db, "bookings"),
+            orderBy("createdAt", "desc")
+          );
+
+          const snap = await getDocs(bookingsQuery);
+
+          console.log("Total dokumen:", snap.size);
+          snap.forEach((doc) => {
+            console.log("Dokumen ID:", doc.id, "Data:", doc.data());
+          });
+
+          if (snap.empty) {
+            statusElement.textContent = "Belum ada data.";
+            return;
+          }
+
+          snap.forEach((doc) => {
+            const data = doc.data();
+            const row = listBody.insertRow();
+
+            const saved = data.createdAt
+              ? new Date(data.createdAt.seconds * 1000).toLocaleString()
+              : "N/A";
+
+            row.insertCell(0).textContent = data.name;
+            row.insertCell(1).textContent = data.age;
+            row.insertCell(2).textContent = data.domicile;
+            row.insertCell(3).textContent = data.date;
+            row.insertCell(4).textContent = saved;
+          });
+
+          statusElement.textContent = "Data berhasil dimuat";
+        } catch (e) {
+          statusElement.textContent = "Error: " + e.message;
+        }
+      };
+
+      fetchBookings();
+    </script>
+  </body>
+</html>
